@@ -1,7 +1,18 @@
+/// <reference types="vite/client" />
 import axios from 'axios';
 
+// Determine API base URL based on environment
+const getBaseURL = () => {
+  // In production, use full URL from environment variable
+  if (import.meta.env.PROD && import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api`;
+  }
+  // In development, use relative URL with proxy
+  return '/api';
+};
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseURL(),
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -69,10 +80,10 @@ export const orderService = {
 export const paymentService = {
   getAll: () => api.get('/payment-methods'),
   
-  create: (data: { type: string; details: Record<string, string>; is_default?: boolean }) =>
+  create: (data: { type: string; details: any; is_default?: boolean }) =>
     api.post('/payment-methods', data),
   
-  update: (id: string, data: Partial<{ type: string; details: Record<string, string>; is_default: boolean }>) =>
+  update: (id: string, data: Partial<{ type: string; details: any; is_default: boolean }>) =>
     api.put(`/payment-methods/${id}`, data),
   
   delete: (id: string) => api.delete(`/payment-methods/${id}`),

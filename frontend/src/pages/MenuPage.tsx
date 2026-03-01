@@ -17,7 +17,6 @@ const MenuPage = () => {
 
   useEffect(() => {
     if (!id) return;
-    restaurantService.getRestaurant 
     restaurantService.getById(id)
       .then(res => {
         setRestaurant(res.data.restaurant);
