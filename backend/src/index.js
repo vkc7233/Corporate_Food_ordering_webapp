@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const restaurantRoutes = require('./routes/restaurants');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
+const { requestLogger } = require('./middleware/logger');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,14 +32,7 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Request logger (dev only)
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, _res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-  });
-}
+app.use(requestLogger);
 
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
@@ -69,12 +63,21 @@ app.use((_req, res) => {
 
 // ─── Error Handler ─────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ 
-    success: false, 
-    message: 'Internal server error.',
-    ...(process.env.NODE_ENV !== 'production' && { error: err.message }),
-  });
+  const isDev = process.env.NODE_ENV !== 'production';
+  console.error('[ERROR]', err.message);
+  console.error('[STACK]', err.stack);
+  
+  const errorResponse = {
+    success: false,
+    message: isDev ? err.message : 'Internal server error.',
+  };
+  
+  if (isDev) {
+    errorResponse.stack = err.stack;
+    errorResponse.details = err.toString();
+  }
+  
+  res.status(500).json(errorResponse);
 });
 
 // ─── Start Server ─────────────────────────────────────────────

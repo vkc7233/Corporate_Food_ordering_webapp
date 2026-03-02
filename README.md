@@ -2,6 +2,11 @@
 
 A full-stack web application with **Role-Based Access Control (RBAC)** and **Country-based Relational Access** for corporate food ordering.
 
+## 📚 Documentation
+
+- **🔧 [Setup & Troubleshooting Guide](./backend/SETUP_AND_TROUBLESHOOTING.md)** - Local setup, common issues, debugging tips
+- **✨ [Improvements Summary](./IMPROVEMENTS_SUMMARY.md)** - List of recent fixes and enhancements
+
 ---
 
 ## 📐 Architecture Overview

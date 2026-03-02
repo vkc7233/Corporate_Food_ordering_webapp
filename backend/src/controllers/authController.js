@@ -2,6 +2,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 
+// Get JWT secret with fallback
+const getJWTSecret = () => {
+  return process.env.JWT_SECRET || 'secret';
+};
+
 /**
  * POST /api/auth/login
  * Authenticate user and return JWT token
@@ -10,6 +15,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validation is now done in middleware, but double-check
     if (!email || !password) {
       return res.status(400).json({ 
         success: false, 
@@ -52,7 +58,7 @@ const login = async (req, res) => {
 
     const token = jwt.sign(
       tokenPayload,
-      process.env.JWT_SECRET || 'secret',
+      getJWTSecret(),
       { expiresIn: '24h' }
     );
 
@@ -63,7 +69,9 @@ const login = async (req, res) => {
       user: tokenPayload,
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('[LOGIN ERROR]', err.message);
+    console.error('[DATABASE CHECK] DATABASE_URL set?', !!process.env.DATABASE_URL);
+    console.error('[FULL ERROR]', err);
     return res.status(500).json({ 
       success: false, 
       message: 'Internal server error.' 

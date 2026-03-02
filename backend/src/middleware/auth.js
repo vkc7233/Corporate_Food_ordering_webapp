@@ -1,5 +1,14 @@
 const jwt = require('jsonwebtoken');
 
+// Get JWT secret with validation
+const getJWTSecret = () => {
+  const secret = process.env.JWT_SECRET || 'secret';
+  if (secret === 'secret' || !secret || secret.length < 10) {
+    console.warn('⚠️  WARNING: Using weak JWT secret. Set a strong JWT_SECRET in .env');
+  }
+  return secret;
+};
+
 /**
  * Middleware: Verify JWT token and attach user to request
  */
@@ -15,7 +24,7 @@ const authenticate = (req, res, next) => {
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, getJWTSecret());
     
     req.user = decoded;
     next();

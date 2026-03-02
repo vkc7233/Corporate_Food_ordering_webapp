@@ -7,6 +7,7 @@ const {
   deletePaymentMethod 
 } = require('../controllers/paymentController');
 const { authenticate, authorize } = require('../middleware/auth');
+const { validatePaymentMethodRequest } = require('../middleware/validation');
 
 router.use(authenticate);
 
@@ -14,8 +15,8 @@ router.use(authenticate);
 router.get('/', getPaymentMethods);
 
 // Only Admin can add/update/delete payment methods
-router.post('/', authorize('admin'), createPaymentMethod);
-router.put('/:id', authorize('admin'), updatePaymentMethod);
+router.post('/', authorize('admin'), validatePaymentMethodRequest, createPaymentMethod);
+router.put('/:id', authorize('admin'), validatePaymentMethodRequest, updatePaymentMethod);
 router.delete('/:id', authorize('admin'), deletePaymentMethod);
 
 module.exports = router;
