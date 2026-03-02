@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "db:migrate": "node src/config/migrate.js",
     "db:seed": "node src/config/seed.js",
+    "release": "npm run db:migrate",
     "build-client": "cd ../frontend && npm ci && npm run build",
     "build": "npm run build-client && npm run db:migrate && npm run db:seed",
     "postinstall": "npm run build-client"

@@ -8,6 +8,7 @@ const restaurantRoutes = require('./routes/restaurants');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const { requestLogger } = require('./middleware/logger');
+const pool = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +45,60 @@ app.use('/api/payment-methods', paymentRoutes);
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// DB health check (development only - shows more details)
+app.get('/api/health/db', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    return res.json({
+      success: true,
+      db: {
+        now: result.rows[0],
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    const isDev = process.env.NODE_ENV !== 'production';
+    console.error('[DB HEALTH] error:', err);
+    return res.status(503).json({
+      success: false,
+      message: 'Database unavailable',
+      ...(isDev && { error: err.message }),
+    });
+  }
+});
+
+// Dev helper: list registered routes (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/routes', (_req, res) => {
+    try {
+      const routes = [];
+      app._router.stack.forEach((middleware) => {
+        if (middleware.route) {
+          // routes registered directly on the app
+          const methods = Object.keys(middleware.route.methods).join(',').toUpperCase();
+          routes.push({ path: middleware.route.path, methods });
+        } else if (middleware.name === 'router' && middleware.handle && middleware.handle.stack) {
+          // router middleware
+          middleware.handle.stack.forEach((handler) => {
+            if (handler.route) {
+              const methods = Object.keys(handler.route.methods).join(',').toUpperCase();
+              routes.push({ path: handler.route.path, methods });
+            }
+          });
+        }
+      });
+
+      // also print to server console for quick inspection
+      console.log('[DEV] Registered routes:', routes.map(r => `${r.methods} ${r.path}`).join(' | '));
+
+      return res.json({ success: true, routes });
+    } catch (err) {
+      console.error('[DEV] Error listing routes:', err);
+      return res.status(500).json({ success: false, message: 'Could not list routes' });
+    }
+  });
+}
 
 // ─── Serve static frontend ─────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
