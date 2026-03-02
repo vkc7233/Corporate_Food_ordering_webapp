@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -37,6 +38,17 @@ app.use('/api/payment-methods', paymentRoutes);
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ─── Serve static frontend ─────────────────────────────────────
+if (process.env.NODE_ENV === 'production') {
+  // `public` is the folder where the client build is output by Vite
+  app.use(express.static(path.join(__dirname, '../public')));
+
+  // for any non-API route, return the React app
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  });
+}
 
 // ─── 404 Handler ──────────────────────────────────────────────
 app.use((_req, res) => {

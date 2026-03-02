@@ -3,11 +3,15 @@ import axios from 'axios';
 
 // Determine API base URL based on environment
 const getBaseURL = () => {
-  // In production, use full URL from environment variable
-  if (import.meta.env.PROD && import.meta.env.VITE_API_URL) {
+  // development always proxies to localhost
+  if (!import.meta.env.PROD) {
+    return '/api';
+  }
+
+  // production: allow explicit override but fall back to same origin
+  if (import.meta.env.VITE_API_URL) {
     return `${import.meta.env.VITE_API_URL}/api`;
   }
-  // In development, use relative URL with proxy
   return '/api';
 };
 

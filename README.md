@@ -112,6 +112,24 @@ payment_methods (id, user_id, type, details, is_default)
 
 ## 🚀 Local Setup
 
+### Combined deploy on Render (single service)
+
+The frontend build can be integrated into the backend so that **one Render service** hosts both the API and the UI. Steps:
+
+1. Ensure `frontend/vite.config.ts` has `build.outDir = '../backend/public'`.
+2. Backend (`backend/package.json`) includes `build-client`/`build`/`postinstall` scripts that install/build the client.
+3. Backend `src/index.js` serves `../public` as static assets and falls back to `index.html`.
+4. In Render settings for the service set:
+   * Build command: `npm install && npm run build` (run from `backend` directory).
+   * Start command: `npm start`.
+   * Environment variables: any backend secrets (DB, JWT, etc.).
+   * **No need for `FRONTEND_URL` or `VITE_API_URL`** – the app is same‑origin.
+5. When you push to the repo render will install dependencies (triggering `postinstall`), build the client, run migrations and seed, then start the server. The React app will be available at `/` and API endpoints at `/api/...`.
+
+The rest of the README continues below.
+
+## 🚀 Local Setup
+
 ### Prerequisites
 - Node.js 18+
 - PostgreSQL 14+ running locally (or a remote DB URL)
